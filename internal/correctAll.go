@@ -1,7 +1,8 @@
 package internal
 
 func CorrectAll(input string) string {
-	result := EditKeywords(input)
-	result = CorrectPunctuation(result)
-	return result
+	input = CorrectPunctuation(input)
+	input = EditKeywords2(input)
+	input = CorrectPunctuation(input)
+	return input
 }

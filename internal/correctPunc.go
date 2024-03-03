@@ -40,9 +40,6 @@ func CorrectPunctuation(text string) string {
 		}
 		correctedArray = append(correctedArray, s)
 	}
-	for _, s := range correctedArray[:len(correctedArray)-1] {
-		result += s + " "
-	}
-	result += correctedArray[len(correctedArray)-1]
+	result = strings.Join(correctedArray, " ")
 	return result
 }
