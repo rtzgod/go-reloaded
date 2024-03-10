@@ -31,8 +31,5 @@ func Capitalize(s string) string {
 	return new_s
 }
 func IsAlphaRune(c rune) bool {
-	if !((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) {
-		return false
-	}
-	return true
+	return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'))
 }
