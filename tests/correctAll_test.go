@@ -50,6 +50,11 @@ func TestCorrectAll(t *testing.T) {
 		{"37", "it was the best of times, it was the worst of times, it was the age of  wisdom, it was the age of  foolishness (cap, 15)", "it was the best of times, it was the Worst Of Times, It Was The Age Of Wisdom, It Was The Age Of Foolishness"},
 		{"38", "There it was. A amazing rock!", "There it was. An amazing rock!"},
 		{"39", "fsdaf fsfaa fds A APLLE", "fsdaf fsfaa fds An APLLE"},
+		{"40", "fdsfsdf (cap, 4", "fdsfsdf (cap, 4"},
+		{"41", "valera(cap)", "Valera"},
+		{"42", "(cap)(up)(low)", ""},
+		{"43", "valera(cap)(low)(up)", "VALERA"},
+		{"44", "valera(cap, 1)(low, 3)(up, 4)", "VALERA"},
 	}
 
 	for _, tt := range tests {

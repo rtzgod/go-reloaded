@@ -18,8 +18,9 @@ func EditKeywords(input string) string {
 	input = multipleCluFix(multipleCapPattern, input, "cap")
 	input = multipleCluFix(multipleUpPattern, input, "up")
 	input = multipleCluFix(multipleLowPattern, input, "low")
+	input = mergedKeywordsFix(input)
 
-	text := strings.Fields(input)
+	text := strings.Split(input, " ")
 
 	for i := 0; i < len(text); i++ {
 		s := text[i]
@@ -49,7 +50,7 @@ func EditKeywords(input string) string {
 			}
 			text = slices.Concat(text[:i], text[i+1:])
 			i--
-		} else if len(s) >= 4 && s[:4] == "(up," && i != 0 {
+		} else if multipleUpPattern.MatchString(s) && i != 0 {
 			count, err := strconv.Atoi(getCount(s[:strings.LastIndex(s, ")")+1]))
 			errCheck(err)
 			if count <= 0 {
@@ -58,7 +59,7 @@ func EditKeywords(input string) string {
 				continue
 			}
 			text, i = multipleCluProcessing(text, s, "up", count, i)
-		} else if len(s) >= 5 && s[:5] == "(low," && i != 0 {
+		} else if multipleLowPattern.MatchString(s) && i != 0 {
 			count, err := strconv.Atoi(getCount(s[:strings.LastIndex(s, ")")+1]))
 			errCheck(err)
 			if count <= 0 {
@@ -67,7 +68,7 @@ func EditKeywords(input string) string {
 				continue
 			}
 			text, i = multipleCluProcessing(text, s, "low", count, i)
-		} else if len(s) >= 5 && s[:5] == "(cap," && i != 0 {
+		} else if multipleCapPattern.MatchString(s) && i != 0 {
 			count, err := strconv.Atoi(getCount(s[:strings.LastIndex(s, ")")+1]))
 			errCheck(err)
 			if count <= 0 {
@@ -99,6 +100,53 @@ func multipleCluFix(pattern *regexp.Regexp, s, kind string) string {
 			return ""
 		}
 	})
+}
+
+func mergedKeywordsFix(s string) string {
+	CapLeft := regexp.MustCompile(`[a-zA-Z0-9()]+(\(\s*(cap|CAP)\s*,\s*-*[0-9]+\)|\(cap\))`)
+	UpLeft := regexp.MustCompile(`[a-zA-Z0-9()]+(\(\s*(up|UP)\s*,\s*-*[0-9]+\)|\(up\))`)
+	LowLeft := regexp.MustCompile(`[a-zA-Z0-9()]+(\(\s*(low|LOW)\s*,\s*-*[0-9]+\)|\(low\))`)
+	CapRight := regexp.MustCompile(`(\(\s*(cap|CAP)\s*,\s*-*[0-9]+\)|\(cap\))[a-zA-Z0-9()]+`)
+	UpRight := regexp.MustCompile(`(\(\s*(up|UP)\s*,\s*-*[0-9]+\)|\(up\))[a-zA-Z0-9()]+`)
+	LowRight := regexp.MustCompile(`(\(\s*(low|LOW)\s*,\s*-*[0-9]+\)|\(low\))[a-zA-Z0-9()]+`)
+	binhexLeft := regexp.MustCompile(`[0-9A-F]+(\(bin\)|\(hex\))`)
+	binhexRight := regexp.MustCompile(`(\(bin\)|\(hex\))[0-9A-F]+`)
+	s = CapLeft.ReplaceAllStringFunc(s, leftWords)
+	s = UpLeft.ReplaceAllStringFunc(s, leftWords)
+	s = LowLeft.ReplaceAllStringFunc(s, leftWords)
+	s = CapRight.ReplaceAllStringFunc(s, rightWords)
+	s = UpRight.ReplaceAllStringFunc(s, rightWords)
+	s = LowRight.ReplaceAllStringFunc(s, rightWords)
+	s = binhexLeft.ReplaceAllStringFunc(s, leftWords)
+	s = binhexRight.ReplaceAllStringFunc(s, rightWords)
+	return s
+}
+
+func leftWords(match string) string {
+	var words []string
+	end := len(match)
+	for i := len(match) - 1; i >= 0; i-- {
+		if match[i] == '(' || i == 0 {
+			words = append(words, match[i:end])
+			end = i
+		}
+	}
+	for i, j := 0, len(words)-1; i < j; i, j = i+1, j-1 {
+		words[i], words[j] = words[j], words[i]
+	}
+	return strings.Join(words, " ")
+}
+
+func rightWords(match string) string {
+	var words []string
+	start := 0
+	for i := 0; i < len(match); i++ {
+		if match[i] == ')' || i == 0 {
+			words = append(words, match[start:i])
+			start = i
+		}
+	}
+	return strings.Join(words, " ")
 }
 
 func multipleCluProcessing(text []string, s, kind string, count, i int) ([]string, int) {
