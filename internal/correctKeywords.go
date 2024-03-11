@@ -37,22 +37,27 @@ func EditKeywords(input string) string {
 			text = slices.Concat(text[:i], text[i+1:])
 			i--
 		} else if len(s) >= 5 && s[:5] == "(bin)" && i != 0 {
-			num, correct := numProcessing(text[i-1], "bin")
+			num, punc := extractNum(text[i-1])
+			num, correct := numProcessing(num, "bin")
 			if correct {
-				text[i-1] = num + s[5:]
+				text[i-1] = num + punc + s[5:]
 			}
 			text = slices.Concat(text[:i], text[i+1:])
 			i--
 		} else if len(s) >= 5 && s[:5] == "(hex)" && i != 0 {
-			num, correct := numProcessing(text[i-1], "hex")
+			num, punc := extractNum(text[i-1])
+			num, correct := numProcessing(num, "hex")
 			if correct {
-				text[i-1] = num + s[5:]
+				text[i-1] = num + punc + s[5:]
 			}
 			text = slices.Concat(text[:i], text[i+1:])
 			i--
 		} else if multipleUpPattern.MatchString(s) && i != 0 {
 			count, err := strconv.Atoi(getCount(s[:strings.LastIndex(s, ")")+1]))
-			errCheck(err)
+			if err != nil {
+				text[i] = "incorrect entry" + text[i]
+				continue
+			}
 			if count <= 0 {
 				text = slices.Concat(text[:i], text[i+1:])
 				i--
@@ -61,7 +66,10 @@ func EditKeywords(input string) string {
 			text, i = multipleCluProcessing(text, s, "up", count, i)
 		} else if multipleLowPattern.MatchString(s) && i != 0 {
 			count, err := strconv.Atoi(getCount(s[:strings.LastIndex(s, ")")+1]))
-			errCheck(err)
+			if err != nil {
+				text[i] = "incorrect entry" + text[i]
+				continue
+			}
 			if count <= 0 {
 				text = slices.Concat(text[:i], text[i+1:])
 				i--
@@ -70,7 +78,10 @@ func EditKeywords(input string) string {
 			text, i = multipleCluProcessing(text, s, "low", count, i)
 		} else if multipleCapPattern.MatchString(s) && i != 0 {
 			count, err := strconv.Atoi(getCount(s[:strings.LastIndex(s, ")")+1]))
-			errCheck(err)
+			if err != nil {
+				text[i] = "incorrect entry" + text[i]
+				continue
+			}
 			if count <= 0 {
 				text = slices.Concat(text[:i], text[i+1:])
 				i--
@@ -211,7 +222,7 @@ func articleProcessing(pattern *regexp.Regexp, s string) string {
 		article := getArticle(match)
 		word := getWordAfterArticle(match)
 
-		vowels := []byte{'a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'}
+		vowels := []byte{'a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U', 'h', 'H'}
 
 		var vowel bool = charInSlice(word[0], vowels)
 
@@ -261,6 +272,15 @@ func charInSlice(char byte, arr []byte) bool {
 		}
 	}
 	return false
+}
+
+func extractNum(n string) (string, string) {
+	for i := 0; i < len(n); i++ {
+		if !('0' <= n[i] && n[i] <= '9') && !('A' <= n[i] && n[i] <= 'F') && !('a' <= n[i] && n[i] <= 'f') {
+			return n[:i], n[i:]
+		}
+	}
+	return n, ""
 }
 
 func clearTrash(pattern *regexp.Regexp, s string) string {

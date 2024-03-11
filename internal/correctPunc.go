@@ -7,7 +7,7 @@ import (
 
 // Corrects punctuation misplacement
 func CorrectPunctuation(text string) string {
-	pattern := regexp.MustCompile(`\s+[.!?]+`)
+	pattern := regexp.MustCompile(`\s+[.!?]{2,3}`)
 	text = pattern.ReplaceAllStringFunc(text, func(match string) string {
 		i := 0
 		for ; i < len(match); i++ {
@@ -19,9 +19,9 @@ func CorrectPunctuation(text string) string {
 	})
 	pattern = regexp.MustCompile(`\s[.,!?:;]`)
 	text = pattern.ReplaceAllStringFunc(text, func(match string) string {
-		return match[1:] + " "
+		return string(match[1]) + " "
 	})
-	pattern = regexp.MustCompile(`'.+'`)
+	pattern = regexp.MustCompile(`'[^']+'`)
 	text = pattern.ReplaceAllStringFunc(text, func(match string) string {
 		start := 1
 		end := len(match) - 2
