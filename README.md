@@ -1,5 +1,7 @@
 # go-reloaded
 
+01edu project
+
 go-reloaded is a simple text completion/editing/auto-correction tool.
 
 ## Installation
